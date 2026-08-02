@@ -41,12 +41,14 @@ jobs:
               -t "${APP}:latest" .
             echo ">> Stopping old container..."
             docker rm -f "${APP}" 2>/dev/null || true
-            # Force free up port 8888
-            fuser -k 8888/tcp 2>/dev/null || true
-            sleep 3
+            sleep 2
             echo ">> Starting container..."
-            PORT=8888
-            docker run -d --name "${APP}" --restart unless-stopped -p "${PORT}:8888" "${APP}:latest"
+            if docker run -d --name "${APP}" --restart unless-stopped -p "${PORT}:8888" "${APP}:latest" 2>/dev/null; then
+              echo ">> Container started on port ${PORT}"
+            else
+              echo ">> Port ${PORT} busy, trying random port..."
+              docker run -d --name "${APP}" --restart unless-stopped -p 8888 "${APP}:latest"
+            fi
             sleep 5
             echo ">> Health check:"
             curl -fsS "http://localhost:${PORT}/_stcore/health" && echo " OK" || echo " FAILED"
