@@ -48,8 +48,11 @@ jobs:
             else
               echo ">> Port ${PORT} busy, trying random port..."
               docker run -d --name "${APP}" --restart unless-stopped -p 8888 "${APP}:latest"
+              # Get the actual host port
+              PORT=$(docker port "${APP}" 8888 | head -1 | sed 's/.*://')
+              echo ">> Container started on random port ${PORT}"
             fi
             sleep 5
-            echo ">> Health check:"
+            echo ">> Health check on port ${PORT}:"
             curl -fsS "http://localhost:${PORT}/_stcore/health" && echo " OK" || echo " FAILED"
             echo ">> Done: http://${{ secrets.SSH_HOST }}:${PORT}/"
