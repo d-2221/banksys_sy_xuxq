@@ -10,6 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Copy code to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "/opt/banksys_sy_xuxq"
+          strip_components: 0
+          rm: true
+
       - name: SSH and deploy
         uses: appleboy/ssh-action@v1.2.2
         with:
@@ -21,8 +32,6 @@ jobs:
             APP="banksys_sy_xuxq"
             DIR="/opt/${APP}"
             PORT=8888
-            echo ">> Connected to $(hostname)"
-            mkdir -p "${DIR}"
             cd "${DIR}"
             echo ">> Building Docker image..."
             docker build --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple -t "${APP}:latest" .
