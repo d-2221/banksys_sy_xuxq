@@ -1,0 +1,54 @@
+name: deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat >> ~/.ssh/config <<EOF
+          Host deploy-server
+            HostName ${{ secrets.SSH_HOST }}
+            User ${{ secrets.SSH_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+          EOF
+
+      - name: Deploy
+        run: |
+          ssh deploy-server << 'DEPLOY_SCRIPT'
+            set -e
+            APP_NAME="banksys_sy_xuxq"
+            DEPLOY_DIR="/opt/${APP_NAME}"
+            PORT=8888
+            PORT_MAX=8889
+            echo ">> Creating deploy directory"
+            mkdir -p "${DEPLOY_DIR}"
+            echo ">> Building Docker image"
+            cd "${DEPLOY_DIR}"
+            docker build --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple -t "${APP_NAME}:latest" .
+            echo ">> Finding available port"
+            port_in_use() { ss -ltnH 2>/dev/null | grep -q ":$1 " && return 0; docker ps --format "{{.Ports}}" 2>/dev/null | grep -q ":$1->" && return 0; return 1; }
+            AVAILABLE_PORT=""
+            for p in $(seq "${PORT}" "${PORT_MAX}"); do
+              if ! port_in_use "$p"; then AVAILABLE_PORT="$p"; break; fi
+            done
+            [ -z "$AVAILABLE_PORT" ] && { echo ">> 端口已全部占用"; exit 1; }
+            echo ">> 端口: ${AVAILABLE_PORT}"
+            docker rm -f "${APP_NAME}" 2>/dev/null || true
+            docker run -d --name "${APP_NAME}" --restart unless-stopped -p "${AVAILABLE_PORT}:8888" "${APP_NAME}:latest"
+            sleep 5
+            curl -fsS "http://localhost:${AVAILABLE_PORT}/_stcore/health" && echo ">> 健康检查通过"
+DEPLOY_SCRIPT
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
