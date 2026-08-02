@@ -1,0 +1,42 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test secrets
+        run: |
+          echo "SSH_HOST length: ${{ secrets.SSH_HOST != '' && 'set' || 'not set' }}"
+          echo "SSH_USER length: ${{ secrets.SSH_USER != '' && 'set' || 'not set' }}"
+          echo "SSH_KEY length: ${{ secrets.SSH_PRIVATE_KEY != '' && 'set' || 'not set' }}"
+
+      - name: SSH and deploy
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s << 'EOS'
+            set -e
+            APP="banksys_sy_xuxq"
+            DIR="/opt/${APP}"
+            PORT=8888
+            echo ">> Connected to $(hostname)"
+            mkdir -p "${DIR}"
+            echo ">> Building..."
+            cd "${DIR}"
+            docker build --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple -t "${APP}:latest" .
+            echo ">> Starting container..."
+            docker rm -f "${APP}" 2>/dev/null || true
+            docker run -d --name "${APP}" --restart unless-stopped -p "${PORT}:8888" "${APP}:latest"
+            sleep 5
+            curl -fsS "http://localhost:${PORT}/_stcore/health" && echo ">> Health check OK"
+            echo ">> Deployed to http://${{ secrets.SSH_HOST }}:${PORT}/"
+EOS
