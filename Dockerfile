@@ -4,12 +4,18 @@ ARG PIP_TIMEOUT=300
 
 FROM python:${PYTHON_VERSION} as builder
 
+ARG PIP_INDEX_URL
+ARG PIP_TIMEOUT
+
 WORKDIR /install
 COPY requirements.txt .
 RUN pip install --no-cache-dir --timeout ${PIP_TIMEOUT} -i "${PIP_INDEX_URL}" -r requirements.txt
 
 
 FROM python:${PYTHON_VERSION}
+
+ARG PIP_INDEX_URL
+ARG PIP_TIMEOUT
 
 WORKDIR /app
 
