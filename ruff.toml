@@ -1,2 +1,5 @@
 [lint]
 ignore = ["N999"]
+
+[lint.isort]
+known-first-party = ["app"]
