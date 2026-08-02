@@ -11,15 +11,30 @@ ID_COL = "id"
 
 # Categorical columns (excluding target)
 CAT_COLS = [
-    "job", "marital", "education", "default", "housing", "loan",
-    "contact", "month", "day_of_week", "poutcome",
+    "job",
+    "marital",
+    "education",
+    "default",
+    "housing",
+    "loan",
+    "contact",
+    "month",
+    "day_of_week",
+    "poutcome",
 ]
 
 # Numerical columns (excluding id and target)
 NUM_COLS = [
-    "age", "duration", "campaign", "pdays", "previous",
-    "emp_var_rate", "cons_price_index", "cons_conf_index",
-    "lending_rate3m", "nr_employed",
+    "age",
+    "duration",
+    "campaign",
+    "pdays",
+    "previous",
+    "emp_var_rate",
+    "cons_price_index",
+    "cons_conf_index",
+    "lending_rate3m",
+    "nr_employed",
 ]
 
 # All feature columns (excluding id and target)
