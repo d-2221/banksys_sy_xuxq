@@ -27,6 +27,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 30m
           script: |
             set -e
             APP="banksys_sy_xuxq"
@@ -34,7 +35,10 @@ jobs:
             PORT=8888
             cd "${DIR}"
             echo ">> Building Docker image..."
-            docker build --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple -t "${APP}:latest" .
+            docker build \
+              --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+              --build-arg PIP_TIMEOUT=300 \
+              -t "${APP}:latest" .
             echo ">> Starting container..."
             docker rm -f "${APP}" 2>/dev/null || true
             docker run -d --name "${APP}" --restart unless-stopped -p "${PORT}:8888" "${APP}:latest"

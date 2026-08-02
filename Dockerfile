@@ -1,10 +1,12 @@
 ARG PYTHON_VERSION=3.11-slim
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_TIMEOUT=300
 
 FROM python:${PYTHON_VERSION} as builder
 
 WORKDIR /install
 COPY requirements.txt .
-RUN pip install --no-cache-dir --timeout 120 -r requirements.txt
+RUN pip install --no-cache-dir --timeout ${PIP_TIMEOUT} -i "${PIP_INDEX_URL}" -r requirements.txt
 
 
 FROM python:${PYTHON_VERSION}
