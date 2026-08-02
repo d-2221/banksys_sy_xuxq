@@ -8,10 +8,10 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by AI)
 
-- **阶段**:`开发完成 — 等待 PR 和 CI`
-- **上一步完成**:全部模块开发完成 + 本地 CI 自检全绿(ruff format/lint 通过, 41 tests 通过, 核心模块覆盖率 99%)
-- **下一步 (TODO 第一条)**:推送 feature 分支并创建 PR
-- **阻塞项**:无
+- **阶段**:`CI 全绿 — 等待人工审核合并与 CD 部署`
+- **上一步完成**:全部模块开发完成 + 本地 CI 自检全绿 + GitHub CI 全绿(ruff format/lint 通过, 41 tests 通过, 核心模块覆盖率 99%, Docker build 成功)
+- **下一步 (TODO 第一条)**:人工审核 PR → 合并 → CD 自动部署
+- **阻塞项**:CD 需要目标服务器可达(SSH_HOST + SSH_USER + SSH_PRIVATE_KEY 已在 Secrets 中配置)
 
 ---
 
@@ -50,11 +50,11 @@
 - [ ] pytest --cov --cov-fail-under=80
 - [ ] 全绿后进入下一步,红则修复重跑
 
-### 六步流程第⑤步:触发 PR
+### 六步流程第⑤步:触发 PR ✅
 
-- [ ] git push feature 分支
-- [ ] gh pr create → CI 在 PR 上复检(含 docker build)
-- [ ] ✋ 确认门 5:汇报 PR 链接与 CI 状态
+- [x] git push feature 分支 ✅
+- [x] gh pr create → CI 在 PR 上复检(含 docker build) ✅
+- [x] ✋ 确认门 5:汇报 PR 链接与 CI 状态 ✅
 
 ### 六步流程第⑥步:人工审核 → 合并 → CD
 
@@ -68,6 +68,9 @@
 
 | 日期 | 决策 | 理由 |
 |---|---|---|
+| 2026-08-02 | .gitignore 中 `data/` 改为 `/data/` | 避免排除 `app/data/` 目录，导致 `ModuleNotFoundError: No module named 'app.data'` |
+| 2026-08-02 | CI 中 PYTHONPATH 使用 `${{ github.workspace }}` | 确保 pytest 能找到本地 app 包 |
+| 2026-08-02 | ruff.toml 添加 `known-first-party = ["app"]` | 解决 CI 上 import 排序规则与本地不一致问题 |
 | 2026-08-02 | CI 中生成合成测试数据供 docker build 使用 | 真实数据不进 Git,CI runner 上没有原始数据,docker build 需要 data/ 目录存在(即使为空) |
 | 2026-08-02 | 采用 Streamlit 多页面架构(app/pages/) | 天然支持数据分析与预测两个独立页面,路由零配置,开发效率高 |
 | 2026-08-02 | scikit-learn Pipeline 封装预处理+模型 | 保证训练与预测的预处理一致性,模型可序列化为单一 pkl 文件 |
@@ -78,7 +81,10 @@
 
 ## 已知坑 (GOTCHAS)
 
-- 暂无
+- `.gitignore` 中 `data/` 匹配任意层级的 `data/` 目录，包括 `app/data/` → 必须使用 `/data/` 仅匹配根目录。
+- CI 上 `ModuleNotFoundError: No module named 'app'` → 需要设置 `PYTHONPATH` 环境变量或 `pip install -e .`。
+- ruff 版本差异可能导致本地与 CI 检查结果不一致 → 精确锁定 ruff 版本如 `ruff>=0.16,<0.17`。
+- `Streamlit` 页面文件使用中文名（如 `01_数据分析.py`）→ ruff N999 告警，需在 `ruff.toml` 中忽略。
 
 ---
 
@@ -92,5 +98,6 @@
 - [x] feature 分支创建
 - [x] 模块 1-6 全部开发完成
 - [x] 本地 CI 自检全绿(ruff + pytest + coverage)
+- [x] GitHub CI 全绿(格式检查、lint、测试、Docker build 全部通过)
 
 > 反臃肿:里程碑超过 15 条时,把更早内容合并成一行摘要,保持本文件可快速阅读。
