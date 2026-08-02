@@ -9,8 +9,8 @@ build/
 venv/
 
 # Data & model artifacts (not tracked in Git)
-data/
-models/
+/data/
+/models/
 *.pkl
 *.joblib
 
