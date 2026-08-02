@@ -1,9 +1,8 @@
 """Data loading and preprocessing module for bank marketing dataset."""
 
-import pandas as pd
-import numpy as np
 from pathlib import Path
-from typing import Tuple, Optional
+
+import pandas as pd
 
 # Column definitions
 TARGET_COL = "subscribe"
@@ -41,7 +40,7 @@ NUM_COLS = [
 FEATURE_COLS = CAT_COLS + NUM_COLS
 
 
-def _resolve_data_path(path: Optional[str] = None) -> Path:
+def _resolve_data_path(path: str | None = None) -> Path:
     """Resolve the data directory path.
 
     Args:
@@ -57,7 +56,7 @@ def _resolve_data_path(path: Optional[str] = None) -> Path:
     return Path(__file__).resolve().parent.parent.parent / "data"
 
 
-def load_csv(filename: str, data_dir: Optional[str] = None) -> pd.DataFrame:
+def load_csv(filename: str, data_dir: str | None = None) -> pd.DataFrame:
     """Load a CSV file from the data directory.
 
     Args:
@@ -112,7 +111,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def load_train_data(data_dir: Optional[str] = None) -> pd.DataFrame:
+def load_train_data(data_dir: str | None = None) -> pd.DataFrame:
     """Load and preprocess training data.
 
     Args:
@@ -125,7 +124,7 @@ def load_train_data(data_dir: Optional[str] = None) -> pd.DataFrame:
     return preprocess(df)
 
 
-def load_test_data(data_dir: Optional[str] = None) -> pd.DataFrame:
+def load_test_data(data_dir: str | None = None) -> pd.DataFrame:
     """Load and preprocess test data.
 
     Args:
@@ -140,7 +139,7 @@ def load_test_data(data_dir: Optional[str] = None) -> pd.DataFrame:
 
 def get_feature_target(
     df: pd.DataFrame,
-) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
+) -> tuple[pd.DataFrame, pd.Series | None]:
     """Split DataFrame into features and target.
 
     Args:
