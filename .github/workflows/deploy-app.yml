@@ -47,8 +47,10 @@ jobs:
               echo ">> Container started on port ${PORT}"
             else
               echo ">> Port ${PORT} busy, trying random port..."
+              docker rm -f "${APP}" 2>/dev/null || true
               docker run -d --name "${APP}" --restart unless-stopped -p 8888 "${APP}:latest"
               # Get the actual host port
+              sleep 2
               PORT=$(docker port "${APP}" 8888 | head -1 | sed 's/.*://')
               echo ">> Container started on random port ${PORT}"
             fi
