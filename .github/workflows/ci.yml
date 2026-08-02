@@ -29,6 +29,8 @@ jobs:
         run: ruff check .
 
       - name: Test with coverage
+        env:
+          PYTHONPATH: .
         run: |
           # Generate test data for tests
           mkdir -p data
@@ -53,7 +55,7 @@ jobs:
           print('Test data generated')
           "
           # Add project root to Python path for local package imports
-          PYTHONPATH=. pytest --cov=app.data --cov=app.analysis --cov=app.model --cov-report=term-missing --cov-fail-under=80 -v
+          python -m pytest --cov=app.data --cov=app.analysis --cov=app.model --cov-report=term-missing --cov-fail-under=80 -v
 
       - name: Generate test data for build
         run: |
