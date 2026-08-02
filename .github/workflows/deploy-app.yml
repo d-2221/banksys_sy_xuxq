@@ -39,8 +39,13 @@ jobs:
               --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
               --build-arg PIP_TIMEOUT=300 \
               -t "${APP}:latest" .
-            echo ">> Starting container..."
+            echo ">> Stopping old container..."
             docker rm -f "${APP}" 2>/dev/null || true
+            # Force free up port 8888
+            fuser -k 8888/tcp 2>/dev/null || true
+            sleep 3
+            echo ">> Starting container..."
+            PORT=8888
             docker run -d --name "${APP}" --restart unless-stopped -p "${PORT}:8888" "${APP}:latest"
             sleep 5
             echo ">> Health check:"
