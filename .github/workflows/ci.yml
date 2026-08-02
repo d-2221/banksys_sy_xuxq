@@ -30,7 +30,7 @@ jobs:
 
       - name: Test with coverage
         env:
-          PYTHONPATH: .
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           # Generate test data for tests
           mkdir -p data
